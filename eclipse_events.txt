@@ -3,13 +3,13 @@ Location: Eastern United States
 Type: Total Solar Eclipse
 Significance: First Total Solar Eclipse Visible from Continental United States Since 1925
 
-Date: June 30, 1970
+Date: June 30, 1973
 Location: Africa, Middle East, India
 Type: Total Solar Eclipse
 Significance: First Total Solar Eclipse Visible from Africa Since 1961
 
-Date: August 21, 2017
-Location: United States
+Date: August 21, 2018
+Location: United States of America
 Type: Total Solar Eclipse
 Significance: Great American Eclipse, Visible across Continental United States
 

@@ -1,7 +1,7 @@
 (ns a3comp348.core
   (:gen-class))
 
-(defn read-eclipse-events []                                ; This function reads eclipse events from given file
+(defn read-eclipse-events []                                ; This function reads eclipse events from a given file
   (with-open [rdr (clojure.java.io/reader "eclipse_events.txt")]
     (reduce (fn [events line]
               (if (re-matches #"\ADate:.*" line)
@@ -10,7 +10,7 @@
             []
             (line-seq rdr))))
 
-(defn view-eclipse-events []
+(defn view-eclipse-events []                                ; This function print all events in the given file along with the total number of events
   (let [events (read-eclipse-events)]
     (println)
     (println (str "Total Eclipse Events: " (count events)))
@@ -24,7 +24,7 @@
         (println detail))
       (println)))) ; Empty line after the last event
 
-(defn add-new-eclipse-event []
+(defn add-new-eclipse-event []                              ; This function adds a new event to the given events file
   (println)
   (println "Enter date:")
   (let [date (str "Date: " (read-line))
@@ -40,7 +40,7 @@
     (println)
     (println "Event added successfully.\n")))
 
-(defn prompt-for-update [prompt old-value]
+(defn prompt-for-update [prompt old-value]                  ;This function is used to work with the modify-eclipse-event function by
   (println (str prompt " [" old-value "]:"))
   (let [input (read-line)]
     (if (empty? input) old-value input)))
@@ -56,38 +56,69 @@
         (println "--------------------------------------------------------------------------------")))
     (println)
     (println "Enter the index of the event you want to modify:")
-    (let [index (Integer/parseInt (read-line))
-          selected-event (nth events (dec index))]
-      (let [updated-date (prompt-for-update "Enter updated date" (nth selected-event 0))
-            updated-location (prompt-for-update "Enter updated location" (nth selected-event 1))
-            updated-type (prompt-for-update "Enter updated type" (nth selected-event 2))
-            updated-significance (prompt-for-update "Enter updated significance" (nth selected-event 3))
-            updated-event (list (str "Date: " updated-date) (str "Location: " updated-location) (str "Type: " updated-type) (str "Significance: " updated-significance))]
-        (spit "eclipse_events.txt"
-              (apply str (interpose "\n" (map #(str (first %) "\n" (second %) "\n" (nth % 2) "\n" (nth % 3) "\n") (assoc events (dec index) updated-event))))
-              :append false)
-        (println)
-        (println "Event modified successfully.\n")))))
+    (let [index (loop []
+                  (let [input (read-line)
+                        idx (try
+                              (Integer/parseInt input)
+                              (catch NumberFormatException e nil))]
+                    (if (and idx (<= idx (count events)) (> idx 0))
+                      idx
+                      (do
+                        (println "Invalid index, please enter a valid index:")
+                        (recur)))))]
+      (let [selected-event (nth events (dec index))]
+        (let [updated-date (prompt-for-update "Enter updated date" (nth selected-event 0))
+              updated-location (prompt-for-update "Enter updated location" (nth selected-event 1))
+              updated-type (prompt-for-update "Enter updated type" (nth selected-event 2))
+              updated-significance (prompt-for-update "Enter updated significance" (nth selected-event 3))
+              updated-event (list (str "Date: " updated-date) (str "Location: " updated-location) (str "Type: " updated-type) (str "Significance: " updated-significance))]
+          (spit "eclipse_events.txt"
+                (apply str (interpose "\n" (map #(str (first %) "\n" (second %) "\n" (nth % 2) "\n" (nth % 3) "\n") (assoc events (dec index) updated-event))))
+                :append false)
+          (println)
+          (println "Event modified successfully.\n"))))))
 
 (defn search-for-eclipse-events []
-  (println "Enter search type (date/location):")
-  (let [search-type (read-line)
-        _ (println "Enter search query:")
-        search-query (read-line)
-        events (read-eclipse-events)
-        matching-events (filter (fn [event]
-                                  (let [event-date (nth event 0)
-                                        event-location (nth event 1)]
-                                    (or (and (= search-type "date") (clojure.string/includes? event-date search-query))
-                                        (and (= search-type "location") (clojure.string/includes? event-location search-query)))))
-                                events)]
-    (println "\nSearch Results:\n")
-    (doseq [[idx event] (map-indexed vector matching-events)]
-      (doseq [detail event]
-        (println detail))
-      (when (not= idx (dec (count matching-events)))
-        (println "--------------------------------------------------------------------------------")))
-    (println))) ; This adds an empty line after the last search result
+  (println "Enter search type (date/location/date range):")
+  (let [search-type (clojure.string/lower-case (read-line))]
+    (cond
+      (or (= search-type "date") (= search-type "location"))
+      (do
+        (println "Enter search query:")
+        (let [search-query (clojure.string/lower-case (read-line))
+              events (read-eclipse-events)
+              matching-events (filter (fn [event]
+                                        (let [event-date (clojure.string/lower-case (nth event 0))
+                                              event-location (clojure.string/lower-case (nth event 1))]
+                                          (or (and (= search-type "date") (clojure.string/includes? event-date search-query))
+                                              (and (= search-type "location") (clojure.string/includes? event-location search-query)))))
+                                      events)]
+          (println "\nSearch Results:\n")
+          (doseq [[idx event] (map-indexed vector matching-events)]
+            (doseq [detail event]
+              (println detail))
+            (when (not= idx (dec (count matching-events)))
+              (println "--------------------------------------------------------------------------------")))
+          (println))) ; This adds an empty line after the last search result
+      (= search-type "date range")
+      (do
+        (println "Enter start year:")
+        (let [start-year (Integer/parseInt (read-line))
+              _ (println "Enter end year:")
+              end-year (Integer/parseInt (read-line))
+              events (read-eclipse-events)
+              matching-events (filter (fn [event]
+                                        (let [event-year (Integer/parseInt (re-find #"\d{4}" (nth event 0)))]
+                                          (and (>= event-year start-year) (<= event-year end-year))))
+                                      events)]
+          (println "\nSearch Results:\n")
+          (doseq [[idx event] (map-indexed vector matching-events)]
+            (doseq [detail event]
+              (println detail))
+            (when (not= idx (dec (count matching-events)))
+              (println "--------------------------------------------------------------------------------")))
+          (println))) ; This adds an empty line after the last search result
+      :else (println "Invalid search type. Please enter 'date', 'location', or 'date range'."))))
 
 (defn main-menu []
   (println "=== Eclipse History Encyclopedia ===")
