@@ -1,7 +1,7 @@
 (ns a3comp348.core
   (:gen-class))
 
-(defn read-eclipse-events []                                ; Reads eclipse events from given file
+(defn read-eclipse-events []                                ; This function reads eclipse events from given file
   (with-open [rdr (clojure.java.io/reader "eclipse_events.txt")]
     (reduce (fn [events line]
               (if (re-matches #"\ADate:.*" line)
