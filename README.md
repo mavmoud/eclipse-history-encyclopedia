@@ -1,7 +1,7 @@
 Eclipse History Encyclopedia Assignment by Mahmoud Mohamed for COMP 348, Winter 2024.
 --------------------------------------------------
 
-**Implementation Specifications/Features:**
+**Features and Functionality of the Program:**
 1. View Eclipse Events
 
 Selecting this option allows a user to view all the events from a user provided text file. The program will present a neatly formatted display, showcasing the essential details such as the date, location, type, and significance for each eclipse event. This feature provides a quick snap of all the eclipse          events specified in the text file. It serves as a convenient way to stay updated on the current state of Eclipse History Encyclopedia.
